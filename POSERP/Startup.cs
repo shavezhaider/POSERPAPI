@@ -22,6 +22,7 @@ using POSERPAPI.Repository.Interface;
 using POSERPAPI.Repository.Implementation;
 using POSERPAPI.Repository.EDMX;
 using Microsoft.EntityFrameworkCore;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -64,6 +65,7 @@ namespace POSERPAPI
             {
                 x.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             });
+
             #region 
             // JWT token configuration 
             var jwtSettings = Configuration.GetSection("JwtSettings");
