@@ -26,6 +26,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.AspNetCore.Identity;
 
 namespace POSERPAPI
 {
@@ -97,6 +98,8 @@ namespace POSERPAPI
             services.AddDbContext<POSERPDBContext>(options =>
                options.UseSqlServer(Configuration.GetConnectionString("POSERPEntities")));
 
+            services.AddIdentity<IdentityUser, IdentityRole>()
+                .AddEntityFrameworkStores<POSERPDBContext>();
 
             services.AddScoped<DbContext, POSERPDBContext>();
             services.AddAutoMapper(typeof(AutoMapperProfile));

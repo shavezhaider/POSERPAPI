@@ -10,11 +10,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace POSERPAPI.Repository.EDMX
 {
-    public class POSERPDBContext : DbContext // : IdentityDbContext //Microsoft.AspNet.Identity.EntityFramework.IdentityDbContext<ApplicationUser>
+    public class POSERPDBContext : IdentityDbContext // : IdentityDbContext //Microsoft.AspNet.Identity.EntityFramework.IdentityDbContext<ApplicationUser>
     {
-        public POSERPDBContext()
-        {
-        }
+       
         public POSERPDBContext(DbContextOptions<POSERPDBContext> options) : base(options)
         {
 
@@ -41,10 +39,11 @@ namespace POSERPAPI.Repository.EDMX
 
 
 
-        //protected override void OnModelCreating(ModelBuilder modelBuilder)
-        //{
-        //    modelBuilder.Query<Class1>();
-        //}
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+          //  modelBuilder.Seed();
+        }
 
     }
 }
