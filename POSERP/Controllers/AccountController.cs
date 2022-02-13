@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using POSERPAPI.Entities.Request;
+using POSERPAPI.Entities.Response;
+using POSERPAPI.Manager.Command.Account;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -16,33 +18,42 @@ namespace POSERPAPI.Controllers
     public class AccountController : ApiControllerBase
     {
         //private readonly UserManager<User> _userManager;
-       // private readonly IMapper _mapper;
+        // private readonly IMapper _mapper;
         private readonly JwtHandler _jwtHandler;
 
         public AccountController(IMediator mediator, JwtHandler jwtHandler) : base(mediator)
         {
             _jwtHandler = jwtHandler;
 
-        }
-
-        //public AccountsController(UserManager<User> userManager, IMapper mapper, JwtHandler jwtHandler)
-        //{
-        //    _userManager = userManager;
-        //    _mapper = mapper;
-        //    _jwtHandler = jwtHandler;
-        //}
+        }     
 
         [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] UserAuthenticationRequest userForAuthentication)
         {
-            //var user = await _userManager.FindByNameAsync(userForAuthentication.Email);
-            //if (user == null || !await _userManager.CheckPasswordAsync(user, userForAuthentication.Password))
-            //    return Unauthorized(new AuthResponseDto { ErrorMessage = "Invalid Authentication" });
-            //var signingCredentials = _jwtHandler.GetSigningCredentials();
-            //var claims = _jwtHandler.GetClaims(user);
-            //var tokenOptions = _jwtHandler.GenerateTokenOptions(signingCredentials, claims);
-           // var token = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
-            return Ok(new UserAuthenticationResponse { IsAuthSuccessful = true, Token = "" });
+            var Query = new UserAuthenticationCommand(userForAuthentication);
+            var user = await CommandAsync(Query);
+            if (user != null)
+            {
+                var signingCredentials = _jwtHandler.GetSigningCredentials();
+                var claims = _jwtHandler.GetClaims(user);
+                var tokenOptions = _jwtHandler.GenerateTokenOptions(signingCredentials, claims);
+                var token = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
+                return Ok(new UserAuthenticationResponse { IsAuthSuccessful = true, Token = token });
+            }
+            else
+                return Unauthorized(new UserAuthenticationResponse { IsAuthSuccessful = false, Token = "", ErrorMessage = "Invalid Authentication" });
+
+
+           
+        }
+
+        [HttpPost("Registration")]
+        public async Task<IActionResult> Registration([FromBody] AppUserRequest appUserRequest)
+        {
+            var Query = new AppUserCommand(appUserRequest);
+            var user = await CommandAsync(Query);
+
+            return Single(user);
         }
     }
 }
