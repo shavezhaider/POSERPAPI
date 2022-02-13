@@ -1,7 +1,7 @@
 ﻿using System;
 
 
-namespace POSERPAPI.Entities.Request
+namespace POSERPAPI.Entities.Response
 {
 
     public class UserAuthenticationResponse

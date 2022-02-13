@@ -27,6 +27,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
+using Swashbuckle.Swagger;
 
 namespace POSERPAPI
 {
@@ -93,8 +94,9 @@ namespace POSERPAPI
 
             services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
             services.AddTransient<IProductManager, ProductManager>();
-            // services.AddMediatR(typeof(Startup));
-
+            services.AddTransient<IUser, UserManagerRepo>();
+            
+            services.AddScoped<JwtHandler>();
             services.AddDbContext<POSERPDBContext>(options =>
                options.UseSqlServer(Configuration.GetConnectionString("POSERPEntities")));
 
@@ -143,7 +145,39 @@ namespace POSERPAPI
 
 
             //});
-            services.AddSwaggerGen();
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "MyProject", Version = "v1.0.0" });
+
+                var securitySchema = new OpenApiSecurityScheme
+                {
+                    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                };
+
+                c.AddSecurityDefinition("Bearer", securitySchema);
+
+                var securityRequirement = new OpenApiSecurityRequirement
+                {
+                    { securitySchema, new[] { "Bearer" } }
+                };
+
+                c.AddSecurityRequirement(securityRequirement);
+
+            });
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
+
+
+            //services.AddSwaggerGen();
         }
         private void EnableSwagger(IApplicationBuilder app)
         {

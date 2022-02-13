@@ -32,7 +32,7 @@ namespace POSERPAPI
         {
             var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.Name, user.Email)
+            new Claim(ClaimTypes.Name, user.UserName)
         };
 
             return claims;
