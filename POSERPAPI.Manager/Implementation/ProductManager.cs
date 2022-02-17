@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using AutoMapper;
+using static POSERPAPI.Utilities.Enums;
 
 namespace POSERPAPI.Manager.Implementation
 {
@@ -52,12 +53,12 @@ namespace POSERPAPI.Manager.Implementation
                 if (existingProduct == null)
                 {
                     result = await AddProduct(product);
-                    processingStatusEntity.Status = result > 0 ? Constants.Success : Constants.Failure;
+                    processingStatusEntity.StatusCode = result > 0 ? (int)statusCode.Success : (int)statusCode.Failure;
                 }
             }
             else
             {
-                processingStatusEntity.Status = Constants.Failure;
+                processingStatusEntity.StatusCode = (int)statusCode.Failure;
                 processingStatusEntity.Errors = errorEntities;
 
             }
@@ -79,9 +80,9 @@ namespace POSERPAPI.Manager.Implementation
                 await _productRepository.RemoveAsync(product);
                 result = await _productRepository.SaveChangesAsync();
                 if (result > 0)
-                    processingStatusEntity.Status = Constants.Success;
+                    processingStatusEntity.StatusCode = (int)statusCode.Success;
                 else
-                    processingStatusEntity.Status = Constants.Failure;
+                    processingStatusEntity.StatusCode = (int)statusCode.Failure;
 
             }
             return processingStatusEntity;

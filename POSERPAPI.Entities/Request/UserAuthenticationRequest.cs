@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using MediatR;
 using POSERPAPI.Entities.Response;
 
@@ -13,9 +14,9 @@ namespace POSERPAPI.Entities.Request
 		//
 		// TODO: Add constructor logic here
 		//
-		//[Required(ErrorMessage = "Email is required.")]
+		[Required(ErrorMessage = "Email is required.")]
 		public string UserName { get; set; }
-		//[Required(ErrorMessage = "Password is required.")]
+        [Required(ErrorMessage = "Password is required.")]
 		public string Password { get; set; }
 
 	}

@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace POSERPAPI.Controllers
 {
@@ -26,8 +27,8 @@ namespace POSERPAPI.Controllers
             _jwtHandler = jwtHandler;
 
         }     
-
-        [HttpPost("Login")]
+        [AllowAnonymous]
+        [HttpPost("Login")]        
         public async Task<IActionResult> Login([FromBody] UserAuthenticationRequest userForAuthentication)
         {
             var Query = new UserAuthenticationCommand(userForAuthentication);
@@ -46,14 +47,34 @@ namespace POSERPAPI.Controllers
 
            
         }
-
+        [AllowAnonymous]
         [HttpPost("Registration")]
         public async Task<IActionResult> Registration([FromBody] AppUserRequest appUserRequest)
         {
+
             var Query = new AppUserCommand(appUserRequest);
             var user = await CommandAsync(Query);
 
             return Single(user);
+        }
+
+        [AllowAnonymous]
+        [HttpPost("ForgotPassword")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest appUserRequest)
+        {
+            var Query = new ForgotPasswordCommand(appUserRequest);
+            var user = await CommandAsync(Query);
+            return Single(user);
+        }
+
+        [AllowAnonymous]
+        [HttpPost("ResetPassword")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest appUserRequest)
+        {
+            //var Query = new ForgotPasswordCommand(appUserRequest);
+            //var user = await CommandAsync(Query);
+            //return Single(user);
+            return null;
         }
     }
 }
