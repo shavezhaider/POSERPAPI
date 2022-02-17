@@ -9,7 +9,9 @@ namespace POSERPAPI.Entities.Entity
 {
     public class ProcessingStatusEntity
     {
-        public string Status { get; set; }
+        public int StatusCode { get; set; }
+        [JsonProperty("message", NullValueHandling = NullValueHandling.Ignore)]
+        public string Message { get; set; }
         [JsonProperty("errors", NullValueHandling = NullValueHandling.Ignore)]
         public List<ErrorEntity> Errors { get; set; }
     }

@@ -9,6 +9,7 @@ namespace POSERPAPI.Utilities
     public static class Constants
     {
         public const string Success = "Success";
+        public const string RegistrationSuccess = "Registration successfully, please check your email for email verification";
         public const string Failure = "Failure";
     }
 }

@@ -44,16 +44,18 @@ namespace POSERPAPI
         public void ConfigureServices(IServiceCollection services)
         {
 
-
+            // services.AddCors();
             services.AddCors(options =>
             {
-                options.AddPolicy("AllowOrigin",
+                options.AddDefaultPolicy(
                     builder =>
                     {
-                        builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-
+                        builder.WithOrigins("https://localhost:44334", "http://localhost:4200","*")
+                                            .AllowAnyHeader()
+                                            .AllowAnyMethod();
                     });
             });
+
             services.AddControllers(config =>
             {
                 config.Filters.Add(typeof(ExceptionFilter));
@@ -91,17 +93,33 @@ namespace POSERPAPI
             });
             //--------------------------------------
             #endregion
+            // Email Service
+            var emailConfig = Configuration.GetSection("EmailConfiguration");
+            services.AddScoped<IEmailSender, EmailSenderManager>();
+
+
+
+
 
             services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
             services.AddTransient<IProductManager, ProductManager>();
             services.AddTransient<IUser, UserManagerRepo>();
-            
+
             services.AddScoped<JwtHandler>();
             services.AddDbContext<POSERPDBContext>(options =>
                options.UseSqlServer(Configuration.GetConnectionString("POSERPEntities")));
 
-            services.AddIdentity<IdentityUser, IdentityRole>()
-                .AddEntityFrameworkStores<POSERPDBContext>();
+            services.AddIdentity<IdentityUser, IdentityRole>(opt =>
+            {
+                opt.Password.RequiredLength = 7;
+                opt.Password.RequireDigit = false;
+                opt.Password.RequireUppercase = false;
+                opt.User.RequireUniqueEmail = true;
+            })
+             .AddEntityFrameworkStores<POSERPDBContext>()
+             .AddDefaultTokenProviders();
+
+            services.Configure<DataProtectionTokenProviderOptions>(opt => opt.TokenLifespan = TimeSpan.FromHours(2));
 
             services.AddScoped<DbContext, POSERPDBContext>();
             services.AddAutoMapper(typeof(AutoMapperProfile));
@@ -123,7 +141,7 @@ namespace POSERPAPI
 
             app.UseAuthentication();
             app.UseAuthorization();
-
+            app.UseCors();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
@@ -150,31 +168,31 @@ namespace POSERPAPI
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "MyProject", Version = "v1.0.0" });
 
-                var securitySchema = new OpenApiSecurityScheme
-                {
-                    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
-                    Name = "Authorization",
-                    In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.Http,
-                    Scheme = "bearer",
-                    Reference = new OpenApiReference
-                    {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                    }
-                };
+                //var securitySchema = new OpenApiSecurityScheme
+                //{
+                //    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+                //    Name = "Authorization",
+                //    In = ParameterLocation.Header,
+                //    Type = SecuritySchemeType.Http,
+                //    Scheme = "bearer",
+                //    Reference = new OpenApiReference
+                //    {
+                //        Type = ReferenceType.SecurityScheme,
+                //        Id = "Bearer"
+                //    }
+                //};
 
-                c.AddSecurityDefinition("Bearer", securitySchema);
+                //c.AddSecurityDefinition("Bearer", securitySchema);
 
-                var securityRequirement = new OpenApiSecurityRequirement
-                {
-                    { securitySchema, new[] { "Bearer" } }
-                };
+                //var securityRequirement = new OpenApiSecurityRequirement
+                //{
+                //    { securitySchema, new[] a{ "Berer" } }
+                //};
 
-                c.AddSecurityRequirement(securityRequirement);
+                //c.AddSecurityRequirement(securityRequirement);
 
             });
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
+            //services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
 
 
             //services.AddSwaggerGen();

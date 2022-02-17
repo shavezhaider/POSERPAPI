@@ -12,6 +12,11 @@ namespace POSERPAPI.Manager.Interface
     {
         public Task<IdentityUser> GetUserAuthenticationToken(UserAuthenticationRequest userAuthenticationRequest);
         public Task<AppUserResponse> AddUser(AppUserRequest appUserRequest);
+        public Task<ForgotPasswordResponse> ForgotPassword(ForgotPasswordRequest appUserRequest);
+        public Task<IdentityUser> GetUserByEmailAsyn(string email);
+        public Task<IdentityUser> GetUserByUserAsyn(string UserName);
+        public Task<IdentityUser> GetUserByIdAsyn(string Id);
+        public Task<IdentityUser> ResetPassword(ResetPasswordRequest resetPassword);
     }
 }
 
