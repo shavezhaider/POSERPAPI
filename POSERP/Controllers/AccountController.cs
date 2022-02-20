@@ -26,9 +26,9 @@ namespace POSERPAPI.Controllers
         {
             _jwtHandler = jwtHandler;
 
-        }     
+        }
         [AllowAnonymous]
-        [HttpPost("Login")]        
+        [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] UserAuthenticationRequest userForAuthentication)
         {
             var Query = new UserAuthenticationCommand(userForAuthentication);
@@ -45,7 +45,7 @@ namespace POSERPAPI.Controllers
                 return Unauthorized(new UserAuthenticationResponse { IsAuthSuccessful = false, Token = "", ErrorMessage = "Invalid Authentication" });
 
 
-           
+
         }
         [AllowAnonymous]
         [HttpPost("Registration")]
@@ -75,6 +75,16 @@ namespace POSERPAPI.Controllers
             //var user = await CommandAsync(Query);
             //return Single(user);
             return null;
+        }
+
+        [AllowAnonymous]
+        [HttpGet("all")]
+        public string all()
+        {
+            //var Query = new ForgotPasswordCommand(appUserRequest);
+            //var user = await CommandAsync(Query);
+            //return Single(user);
+            return "hello test";
         }
     }
 }

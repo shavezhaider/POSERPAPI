@@ -17,7 +17,7 @@ namespace POSERPAPI
             
             CreateMap<Product, ProductEntity>();
             //CreateMap<IEnumerable<Product>, IEnumerable<ProductEntity>>();
-            CreateMap<AppUserEntity, IdentityUser>();
+            CreateMap<AppUserEntity, AppUser>();
             //CreateMap<UserForRegistrationDto, User>()
             //    .ForMember(u => u.UserName, opt => opt.MapFrom(x => x.Email));
         }

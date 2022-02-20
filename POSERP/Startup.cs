@@ -45,15 +45,19 @@ namespace POSERPAPI
         {
 
             // services.AddCors();
-            services.AddCors(options =>
+            //services.AddCors(options =>
+            //{
+            //    options.AddDefaultPolicy(
+            //        builder =>
+            //        {
+            //            builder.WithOrigins("http://localhost:44334", "http://localhost:4200", "*")
+            //                                .AllowAnyHeader()
+            //                                .AllowAnyMethod();
+            //        });
+            //});
+            services.AddCors(c =>
             {
-                options.AddDefaultPolicy(
-                    builder =>
-                    {
-                        builder.WithOrigins("https://localhost:44334", "http://localhost:4200","*")
-                                            .AllowAnyHeader()
-                                            .AllowAnyMethod();
-                    });
+                c.AddPolicy("AllowOrigin", options => options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
             });
 
             services.AddControllers(config =>
@@ -109,9 +113,9 @@ namespace POSERPAPI
             services.AddDbContext<POSERPDBContext>(options =>
                options.UseSqlServer(Configuration.GetConnectionString("POSERPEntities")));
 
-            services.AddIdentity<IdentityUser, IdentityRole>(opt =>
+            services.AddIdentity<AppUser, IdentityRole>(opt =>
             {
-                opt.Password.RequiredLength = 7;
+                opt.Password.RequiredLength = 6;
                 opt.Password.RequireDigit = false;
                 opt.Password.RequireUppercase = false;
                 opt.User.RequireUniqueEmail = true;
@@ -128,25 +132,36 @@ namespace POSERPAPI
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env , RoleManager<IdentityRole> roleManager)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
             app.UseRouting();
 
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseCors();
+            app.UseCors(options => options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
+            Task.Run(() => this.CreateRoles(roleManager)).Wait();
             EnableSwagger(app);
+        }
+        private async Task CreateRoles(RoleManager<IdentityRole> roleManager)
+        {
+            foreach (string rol in this.Configuration.GetSection("Roles").Get<List<string>>())
+            {
+                if (!await roleManager.RoleExistsAsync(rol))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(rol));
+                }
+            }
         }
         private void ConfigurSwagger(IServiceCollection services)
         {

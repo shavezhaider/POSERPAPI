@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace POSERPAPI.Repository.EDMX
 {
-    public class POSERPDBContext : IdentityDbContext // : IdentityDbContext //Microsoft.AspNet.Identity.EntityFramework.IdentityDbContext<ApplicationUser>
+    public class POSERPDBContext : IdentityDbContext<AppUser> // : IdentityDbContext //Microsoft.AspNet.Identity.EntityFramework.IdentityDbContext<ApplicationUser>
     {
        
         public POSERPDBContext(DbContextOptions<POSERPDBContext> options) : base(options)
