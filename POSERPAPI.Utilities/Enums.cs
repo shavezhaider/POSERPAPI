@@ -6,19 +6,21 @@ namespace POSERPAPI.Utilities
 {
     public static class Enums
     {
-        public  enum  statusCode
+        public enum statusCode
         {
             Success = 1,
             Failure = 2,
             Incomplete = 3,
             Error = 4,
-            DuplicateRecord=5
+            DuplicateRecord = 5
 
         }
         public enum Role
         {
+            SuperAdmin,
             Admin,
-            User
+            Employee,
+            Customer
         }
 
 

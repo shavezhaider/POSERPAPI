@@ -11,7 +11,9 @@ namespace POSERPAPI.Entities.Entity
         public string FirstName { get; set; }
 
         public string LastName { get; set; }
-
+        [Required(ErrorMessage = "User Name is required.")]
+        public string UserName { get; set; }
+        
         [Required(ErrorMessage = "Email is required.")]
         public string Email { get; set; }
 

@@ -4,6 +4,7 @@ using POSERPAPI.Entities.Entity;
 using POSERPAPI.Entities.Request;
 using POSERPAPI.Entities.Response;
 using POSERPAPI.Manager.Interface;
+using POSERPAPI.Repository.EDMX;
 using POSERPAPI.Utilities;
 using System;
 using System.Collections.Generic;
@@ -16,12 +17,12 @@ namespace POSERPAPI.Manager.Implementation
 {
     public class UserManagerRepo : IUser
     {
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<AppUser> _userManager;
         private readonly IMapper _mapper;
         ProcessingStatusEntity processingStatusEntity;
 
         // private readonly JwtHandler _jwtHandler;
-        public UserManagerRepo(UserManager<IdentityUser> userManager, IMapper mapper)
+        public UserManagerRepo(UserManager<AppUser> userManager, IMapper mapper)
         {
             _userManager = userManager;
             _mapper = mapper;
@@ -33,16 +34,27 @@ namespace POSERPAPI.Manager.Implementation
         {
             AppUserResponse appUserResponse = new AppUserResponse();           
             
-            #region Check Duplication Records
+            #region Check Duplication Records by email
             var userDetail = GetUserByEmailAsyn(appUserRequest.appUserEntity.Email);
             if (userDetail == null)
             {
                 processingStatusEntity.StatusCode = (int)statusCode.DuplicateRecord;
+                processingStatusEntity.Message = "Duplicate user email not allowed";
                 appUserResponse.processingStatus = processingStatusEntity;
                 return appUserResponse;
             }
-            #endregion 
-            var user = _mapper.Map<IdentityUser>(appUserRequest.appUserEntity);
+            #endregion
+            #region Check Duplication Records by user name
+            var userDetailByuser = GetUserByEmailAsyn(appUserRequest.appUserEntity.UserName);
+            if (userDetailByuser == null)
+            {
+                processingStatusEntity.StatusCode = (int)statusCode.DuplicateRecord;
+                processingStatusEntity.Message = "Duplicate user name not allowed";
+                appUserResponse.processingStatus = processingStatusEntity;
+                return appUserResponse;
+            }
+            #endregion
+            var user = _mapper.Map<AppUser>(appUserRequest.appUserEntity);
             var result = await _userManager.CreateAsync(user, appUserRequest.appUserEntity.Password);
             
 
@@ -58,14 +70,15 @@ namespace POSERPAPI.Manager.Implementation
                 ErrorEntity errorEntity = new ErrorEntity();
                 errorEntity.ErrorCode = Constants.Failure;
 
-                processingStatusEntity.StatusCode = (int)statusCode.Success;
+                processingStatusEntity.StatusCode = (int)statusCode.Failure;
+                
+                processingStatusEntity.Message = ConvertErrorListToString(errors);
                 processingStatusEntity.Errors = new List<ErrorEntity>();
                 processingStatusEntity.Errors.AddRange(errors);
 
             }
             else
             {
-
                 var userRole = await _userManager.AddToRoleAsync(user, appUserRequest.appUserEntity.Role);
                 processingStatusEntity.StatusCode = (int)statusCode.Success;
                 processingStatusEntity.Message = Constants.RegistrationSuccess;
@@ -92,7 +105,7 @@ namespace POSERPAPI.Manager.Implementation
             return passwordResponse;
         }
 
-        public async Task<IdentityUser> GetUserAuthenticationToken(UserAuthenticationRequest userAuthenticationRequest)
+        public async Task<AppUser> GetUserAuthenticationToken(UserAuthenticationRequest userAuthenticationRequest)
         {
             var user = await _userManager.FindByNameAsync(userAuthenticationRequest.UserName);
             if (user == null || !await _userManager.CheckPasswordAsync(user, userAuthenticationRequest.Password))
@@ -102,22 +115,22 @@ namespace POSERPAPI.Manager.Implementation
 
         }
 
-        public async Task<IdentityUser> GetUserByEmailAsyn(string email)
+        public async Task<AppUser> GetUserByEmailAsyn(string email)
         {
            return  await _userManager.FindByEmailAsync(email);
         }
 
-        public async Task<IdentityUser> GetUserByIdAsyn(string UserId)
+        public async Task<AppUser> GetUserByIdAsyn(string UserId)
         {
             return await _userManager.FindByIdAsync(UserId);
         }
 
-        public async Task<IdentityUser> GetUserByUserAsyn(string UserName)
+        public async Task<AppUser> GetUserByUserAsyn(string UserName)
         {
             return await _userManager.FindByNameAsync(UserName);
         }
 
-        public async Task<IdentityUser> ResetPassword(ResetPasswordRequest resetPassword)
+        public async Task<AppUser> ResetPassword(ResetPasswordRequest resetPassword)
         {
             var user = await _userManager.FindByEmailAsync(resetPassword.Email);
             if (user == null)
@@ -127,6 +140,16 @@ namespace POSERPAPI.Manager.Implementation
             {
             }
                 throw new NotImplementedException();
+        }
+
+        public string ConvertErrorListToString(List<ErrorEntity> errors)
+        {
+            string errorMessage = string.Empty;
+            foreach (var error in errors)
+            {
+                errorMessage= errorMessage+ "Error Code: " + error.ErrorCode+ "\nMessage: "+ error.ErrorDescription;
+            }
+            return errorMessage;
         }
     }
 }

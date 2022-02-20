@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using POSERPAPI.Repository.EDMX;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -28,7 +29,7 @@ namespace POSERPAPI
             return new SigningCredentials(secret, SecurityAlgorithms.HmacSha256);
         }
 
-        public List<Claim> GetClaims(IdentityUser user)
+        public List<Claim> GetClaims(AppUser user)
         {
             var claims = new List<Claim>
         {
