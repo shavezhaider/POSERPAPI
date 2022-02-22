@@ -32,7 +32,7 @@ namespace POSERPAPI.Repository.EDMX
         public DbSet<SalesMaster> salesMasters { get; set; }
         public DbSet<SaleTransaction> saleTransactions { get; set; }
         public DbSet<SaleTax> saleTaxes { get; set; }
-
+        public DbSet<Setting> settings { get; set; }
 
 
         // sp

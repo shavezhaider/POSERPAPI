@@ -42,7 +42,7 @@ namespace POSERPAPI.Controllers
                 return Ok(new UserAuthenticationResponse { IsAuthSuccessful = true, Token = token });
             }
             else
-                return Unauthorized(new UserAuthenticationResponse { IsAuthSuccessful = false, Token = "", ErrorMessage = "Invalid Authentication" });
+                return Ok(new UserAuthenticationResponse { IsAuthSuccessful = false, Token = "", ErrorMessage = "Invalid Authentication" });
 
 
 

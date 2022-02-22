@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using POSERPAPI.Entities.Entity;
 using POSERPAPI.Entities.Request;
 using POSERPAPI.Entities.Response;
 using POSERPAPI.Repository.EDMX;
@@ -18,6 +19,7 @@ namespace POSERPAPI.Manager.Interface
         public Task<AppUser> GetUserByUserAsyn(string UserName);
         public Task<AppUser> GetUserByIdAsyn(string Id);
         public Task<AppUser> ResetPassword(ResetPasswordRequest resetPassword);
+        
     }
 }
 
