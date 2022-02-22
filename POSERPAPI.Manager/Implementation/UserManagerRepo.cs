@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 using POSERPAPI.Entities.Entity;
 using POSERPAPI.Entities.Request;
 using POSERPAPI.Entities.Response;
@@ -10,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using static POSERPAPI.Utilities.Enums;
 
@@ -20,13 +22,16 @@ namespace POSERPAPI.Manager.Implementation
         private readonly UserManager<AppUser> _userManager;
         private readonly IMapper _mapper;
         ProcessingStatusEntity processingStatusEntity;
+        private readonly IEmailSender _emailSender;
 
         // private readonly JwtHandler _jwtHandler;
-        public UserManagerRepo(UserManager<AppUser> userManager, IMapper mapper)
+        public UserManagerRepo(UserManager<AppUser> userManager, IMapper mapper, IEmailSender emailSender)
         {
             _userManager = userManager;
             _mapper = mapper;
+            _emailSender = emailSender;
             processingStatusEntity = new ProcessingStatusEntity();
+
 
         }
 
@@ -93,15 +98,34 @@ namespace POSERPAPI.Manager.Implementation
         {
             ForgotPasswordResponse passwordResponse = new ForgotPasswordResponse();
             var user = await _userManager.FindByEmailAsync(appUserRequest.Email);
-
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            // var callback = Url.Action(nameof(ResetPassword), "Account", new { token, email = user.Email }, Request.Scheme);
-            // var message = new Message(new string[] { user.Email }, "Reset password token", callback, null);
-            // await _emailSender.SendEmailAsync(message);
-            
-            processingStatusEntity.Message = "Please check your email for password reset instructions";
-            processingStatusEntity.StatusCode = (int)statusCode.Success;
-            passwordResponse.processingStatus = processingStatusEntity;
+            if (user != null)
+            {
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                token = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+                // var callback = Url.Action(nameof(ResetPassword), "Account", new { token, email = user.Email }, Request.Scheme);
+                // var message = new Message(new string[] { user.Email }, "Reset password token", callback, null);
+                
+                // var callbackUrl = Url.ActionLink("ResetPassword", "Account", new { @code = token });
+                var callbackUrl = "";
+                EmailModalRequest emailModal = new EmailModalRequest();
+                string msgurl = $"Please reset your password by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.";
+                emailModal.Body = msgurl;
+                emailModal.Subject = "Reset Password";
+                emailModal.ToEmailId = user.Email;
+                bool funBool = _emailSender.SendEmail(emailModal);
+                if (funBool)
+                {
+                    processingStatusEntity.Message = "Please check your email for password reset instructions";
+                    processingStatusEntity.StatusCode = (int)statusCode.Success;
+                    
+                }
+                else
+                {
+                    processingStatusEntity.Message = "Something went wrong while sending email, Please try again.";
+                    processingStatusEntity.StatusCode = (int)statusCode.Error;
+                }
+                passwordResponse.processingStatus = processingStatusEntity;
+            }
             return passwordResponse;
         }
 
@@ -151,5 +175,7 @@ namespace POSERPAPI.Manager.Implementation
             }
             return errorMessage;
         }
+
+       
     }
 }
