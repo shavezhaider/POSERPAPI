@@ -11,5 +11,11 @@ namespace POSERPAPI.Utilities
         public const string Success = "Success";
         public const string RegistrationSuccess = "Registration successfully, please check your email for email verification";
         public const string Failure = "Failure";
+
+    }
+
+    public static class DataConstants
+    {
+        public const string DOMAIN_URL = "DominUrl";
     }
 }

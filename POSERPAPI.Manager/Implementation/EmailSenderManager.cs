@@ -25,7 +25,7 @@ namespace POSERPAPI.Manager.Implementation
                 string Port = ApplicationConstants.SMTP_PORT;
                 string Server = ApplicationConstants.SMTP_SERVER;
 
-                string FromPassword = ApplicationConstants.SMTP_FROM;
+                string FromPassword = ApplicationConstants.SMTP_PASSWORD;
 
                 int portNum = 0x19;
                 if (Port != "")
@@ -62,6 +62,7 @@ namespace POSERPAPI.Manager.Implementation
                     EnableSsl = true,
                     DeliveryMethod = SmtpDeliveryMethod.Network,
                     UseDefaultCredentials = false,
+                    
                     Credentials = new NetworkCredential(fromAddress.Address, fromPassword)
                 };
                 if (replyTo != "")

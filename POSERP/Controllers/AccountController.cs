@@ -54,7 +54,7 @@ namespace POSERPAPI.Controllers
 
             var Query = new AppUserCommand(appUserRequest);
             var user = await CommandAsync(Query);
-
+           
             return Single(user);
         }
 
@@ -69,12 +69,13 @@ namespace POSERPAPI.Controllers
 
         [AllowAnonymous]
         [HttpPost("ResetPassword")]
+        
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest appUserRequest)
         {
-            //var Query = new ForgotPasswordCommand(appUserRequest);
-            //var user = await CommandAsync(Query);
-            //return Single(user);
-            return null;
+            var Query = new ResetPasswordCommand(appUserRequest);
+            var user = await CommandAsync(Query);
+            return Single(user);
+            
         }
 
         [AllowAnonymous]

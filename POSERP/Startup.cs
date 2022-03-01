@@ -108,6 +108,7 @@ namespace POSERPAPI
             services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
             services.AddTransient<IProductManager, ProductManager>();
             services.AddTransient<IUser, UserManagerRepo>();
+            services.AddTransient<ISetting, SettingManager>();
 
             services.AddScoped<JwtHandler>();
             services.AddDbContext<POSERPDBContext>(options =>
