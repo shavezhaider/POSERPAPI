@@ -5,8 +5,8 @@ using System.Text;
 
 namespace POSERPAPI.Manager.Interface
 {
-    interface ISetting
+   public interface ISetting
     {
-        Setting GetSettingByName();
+        Setting GetSettingByName(string Name);
     }
 }

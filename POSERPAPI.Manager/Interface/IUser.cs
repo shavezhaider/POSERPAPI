@@ -18,7 +18,7 @@ namespace POSERPAPI.Manager.Interface
         public Task<AppUser> GetUserByEmailAsyn(string email);
         public Task<AppUser> GetUserByUserAsyn(string UserName);
         public Task<AppUser> GetUserByIdAsyn(string Id);
-        public Task<AppUser> ResetPassword(ResetPasswordRequest resetPassword);
+        public Task<ProcessingStatusEntity> ResetPassword(ResetPasswordRequest resetPassword);
         
     }
 }

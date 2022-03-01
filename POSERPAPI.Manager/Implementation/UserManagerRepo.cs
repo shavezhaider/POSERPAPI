@@ -23,13 +23,15 @@ namespace POSERPAPI.Manager.Implementation
         private readonly IMapper _mapper;
         ProcessingStatusEntity processingStatusEntity;
         private readonly IEmailSender _emailSender;
-
+        private readonly ISetting _setting;
         // private readonly JwtHandler _jwtHandler;
-        public UserManagerRepo(UserManager<AppUser> userManager, IMapper mapper, IEmailSender emailSender)
+        public UserManagerRepo(UserManager<AppUser> userManager, IMapper mapper, IEmailSender emailSender,
+            ISetting setting)
         {
             _userManager = userManager;
             _mapper = mapper;
             _emailSender = emailSender;
+            _setting = setting;
             processingStatusEntity = new ProcessingStatusEntity();
 
 
@@ -37,8 +39,8 @@ namespace POSERPAPI.Manager.Implementation
 
         public async Task<AppUserResponse> AddUser(AppUserRequest appUserRequest)
         {
-            AppUserResponse appUserResponse = new AppUserResponse();           
-            
+            AppUserResponse appUserResponse = new AppUserResponse();
+
             #region Check Duplication Records by email
             var userDetail = GetUserByEmailAsyn(appUserRequest.appUserEntity.Email);
             if (userDetail == null)
@@ -61,22 +63,16 @@ namespace POSERPAPI.Manager.Implementation
             #endregion
             var user = _mapper.Map<AppUser>(appUserRequest.appUserEntity);
             var result = await _userManager.CreateAsync(user, appUserRequest.appUserEntity.Password);
-            
+
 
             if (!result.Succeeded)
             {
-                var errors = (from r in result.Errors
-                              select new ErrorEntity
-                              {
-                                  ErrorCode = r.Code,
-                                  ErrorDescription = r.Description
-                              }).ToList();
-
+                var errors = ConvertIdentityErrorToErrorList(result.Errors);
                 ErrorEntity errorEntity = new ErrorEntity();
                 errorEntity.ErrorCode = Constants.Failure;
 
                 processingStatusEntity.StatusCode = (int)statusCode.Failure;
-                
+
                 processingStatusEntity.Message = ConvertErrorListToString(errors);
                 processingStatusEntity.Errors = new List<ErrorEntity>();
                 processingStatusEntity.Errors.AddRange(errors);
@@ -97,16 +93,15 @@ namespace POSERPAPI.Manager.Implementation
         public async Task<ForgotPasswordResponse> ForgotPassword(ForgotPasswordRequest appUserRequest)
         {
             ForgotPasswordResponse passwordResponse = new ForgotPasswordResponse();
-            var user = await _userManager.FindByEmailAsync(appUserRequest.Email);
+            var user = await _userManager.FindByNameAsync(appUserRequest.UserName);
             if (user != null)
             {
+                
                 var token = await _userManager.GeneratePasswordResetTokenAsync(user);
                 token = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
-                // var callback = Url.Action(nameof(ResetPassword), "Account", new { token, email = user.Email }, Request.Scheme);
-                // var message = new Message(new string[] { user.Email }, "Reset password token", callback, null);
-                
-                // var callbackUrl = Url.ActionLink("ResetPassword", "Account", new { @code = token });
-                var callbackUrl = "";
+                var resultSetting = _setting.GetSettingByName(DataConstants.DOMAIN_URL);
+
+                var callbackUrl = resultSetting.Value + "resetpassword/" + token + "/"+user.Email;
                 EmailModalRequest emailModal = new EmailModalRequest();
                 string msgurl = $"Please reset your password by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.";
                 emailModal.Body = msgurl;
@@ -117,7 +112,7 @@ namespace POSERPAPI.Manager.Implementation
                 {
                     processingStatusEntity.Message = "Please check your email for password reset instructions";
                     processingStatusEntity.StatusCode = (int)statusCode.Success;
-                    
+
                 }
                 else
                 {
@@ -141,7 +136,7 @@ namespace POSERPAPI.Manager.Implementation
 
         public async Task<AppUser> GetUserByEmailAsyn(string email)
         {
-           return  await _userManager.FindByEmailAsync(email);
+            return await _userManager.FindByEmailAsync(email);
         }
 
         public async Task<AppUser> GetUserByIdAsyn(string UserId)
@@ -154,16 +149,28 @@ namespace POSERPAPI.Manager.Implementation
             return await _userManager.FindByNameAsync(UserName);
         }
 
-        public async Task<AppUser> ResetPassword(ResetPasswordRequest resetPassword)
+        public async Task<ProcessingStatusEntity> ResetPassword(ResetPasswordRequest resetPassword)
         {
             var user = await _userManager.FindByEmailAsync(resetPassword.Email);
             if (user == null)
             { }
+            var token = resetPassword.Token;
+           // resetPassword.Token = WebEncoders.Base64UrlDecode(Encoding.UTF8.GetBytes(token));
             var resetPassResult = await _userManager.ResetPasswordAsync(user, resetPassword.Token, resetPassword.Password);
             if (!resetPassResult.Succeeded)
             {
+                var error = ConvertIdentityErrorToErrorList(resetPassResult.Errors);
+
+
+                processingStatusEntity.Message = ConvertErrorListToString(error);
+                processingStatusEntity.StatusCode = (int)statusCode.Failure;
             }
-                throw new NotImplementedException();
+            else
+            {
+                processingStatusEntity.Message = "";
+                processingStatusEntity.StatusCode = (int)statusCode.Success;
+            }
+            return processingStatusEntity;
         }
 
         public string ConvertErrorListToString(List<ErrorEntity> errors)
@@ -171,11 +178,22 @@ namespace POSERPAPI.Manager.Implementation
             string errorMessage = string.Empty;
             foreach (var error in errors)
             {
-                errorMessage= errorMessage+ "Error Code: " + error.ErrorCode+ "\nMessage: "+ error.ErrorDescription;
+                errorMessage = errorMessage + "Error Code: " + error.ErrorCode + "\nMessage: " + error.ErrorDescription;
             }
             return errorMessage;
         }
 
-       
+        public List<ErrorEntity> ConvertIdentityErrorToErrorList(IEnumerable<IdentityError> errorslist)
+        {
+            var errors = (from r in errorslist
+                          select new ErrorEntity
+                          {
+                              ErrorCode = r.Code,
+                              ErrorDescription = r.Description
+                          }).ToList();
+            return errors;
+        }
+
+
     }
 }
